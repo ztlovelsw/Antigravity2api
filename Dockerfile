@@ -2,15 +2,20 @@
 FROM node:18-slim AS builder
 WORKDIR /app
 
-# Install backend dependencies
+# Install backend dependencies first to leverage Docker layer caching
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# Copy the rest of the source to build frontend assets
+# Install frontend dependencies separately so the build step does not need to
+# re-download packages each time
+COPY client/package.json client/package-lock.json ./client/
+RUN npm ci --prefix client
+
+# Copy the full source for the actual build
 COPY . .
 
 # Build the React admin console (outputs to client/dist)
-RUN npm run build
+RUN npm run build --prefix client
 
 FROM node:18-slim AS runner
 WORKDIR /app
