@@ -1,5 +1,6 @@
 # Multi-stage build to produce a lightweight runtime image
-FROM node:18-slim AS builder
+# Use Node 20 to match the frontend tooling (rolldown-vite) requirements
+FROM node:20-slim AS builder
 WORKDIR /app
 
 # Install backend dependencies first to leverage Docker layer caching
@@ -17,7 +18,7 @@ COPY . .
 # Build the React admin console (outputs to client/dist)
 RUN npm run build --prefix client
 
-FROM node:18-slim AS runner
+FROM node:20-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
